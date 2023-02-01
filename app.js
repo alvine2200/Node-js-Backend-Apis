@@ -11,9 +11,9 @@ const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
-app.use("api/v1/", UserRouter);
-app.use("api/v1/conversation", ConversationRouter);
+
+app.use("/api/v1/user", UserRouter);
+app.use("/api/v1/conversation", auth, ConversationRouter);
 
 const start = async (req, res) => {
   await connectDB(conn);

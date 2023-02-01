@@ -2,28 +2,33 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const Auth = async (req, res, next) => {
-  const authHeader = req.headers.Authorization;
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith("Bearer")) {
+      return res
+        .status(403)
+        .json({ status: "failed", msg: "User Not authorized, No token " });
+    }
 
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
-    return res
-      .status(403)
-      .json({ status: "failed", msg: "User Not authorized " });
+    const token = authHeader.split(" ")[1];
+    const payload = await jwt.verify(token, process.env.JWT_SECRET);
+    if (payload) {
+      req.user = { userId: payload.id, email: payload.email };
+      next();
+    }
+
+    return res.status(403).json({
+      status: "failed",
+      msg: "User Not authorized, token doesnt match",
+    });
+  } catch (error) {
+    console.log(error);
+    return res.status(403).json({
+      status: "failed",
+      msg: "User Not authorized, token doesnt match",
+      error: error,
+    });
   }
-
-  const token = authHeader.split(" ")[1];
-
-  if (!token) {
-    return res
-      .status(403)
-      .json({ status: "failed", msg: "User Not authorized" });
-  }
-  const user = await jwt.verify(token, process.env.JWT_SECRET);
-  if (user) {
-    req.user = { userId: user.id, email: user.email };
-    next();
-  }
-
-  return res.status(403).json({ status: "failed", msg: "User Not authorized" });
 };
 
 module.exports = Auth;

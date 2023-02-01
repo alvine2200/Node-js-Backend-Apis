@@ -15,7 +15,7 @@ const Register = async (req, res) => {
         .json({ status: "failed", msg: "Please fill all fields..." });
     }
 
-    const isExisting = await UserModel.findOne({ email });
+    const isExisting = await UserModel.findOne({ email: req.body.email });
     if (isExisting) {
       return res
         .status(500)
@@ -85,6 +85,27 @@ const Login = async (req, res) => {
   }
 };
 
+const FindUser = async (req, res) => {
+  const user_id = req.params.id;
+  const user = await UserModel.findById({ _id: user_id })
+    .then((user) => {
+      const { password, ...others } = user._doc;
+      return res.status(200).json({
+        status: "success",
+        msg: "User fetched successfully",
+        data: others,
+      });
+    })
+    .catch((error) => {
+      console.log(error);
+      return res.status(500).json({
+        status: "failed",
+        error: error,
+        msg: "Something went wrong, try again...",
+      });
+    });
+};
+
 const createToken = async (user) => {
   const token = await jwt.sign(
     { id: user._id.toString(), email: user.email },
@@ -94,4 +115,4 @@ const createToken = async (user) => {
   return token;
 };
 
-module.exports = { Register, Login };
+module.exports = { Register, Login, FindUser };
