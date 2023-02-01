@@ -28,4 +28,58 @@ const CreateConversation = async (req, res) => {
   }
 };
 
-module.exports = { CreateConversation };
+const UserConversation = async (req, res) => {
+  try {
+    if (req.user.userId == req.params.id) {
+      const currentUser = req.user.userId;
+      const convo = await Conversation.find({
+        members: { $in: [currentUser] },
+      });
+      return res.status(200).json({
+        status: "success",
+        msg: "Conversation fetched",
+        data: convo,
+      });
+    } else {
+      return res.status(500).json({
+        status: "failed",
+        msg: "You can only get your conversation",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: "failed",
+      msg: "error ocurred while trying to fetch",
+      error: error,
+    });
+  }
+};
+
+const SingleConversation = async (req, res) => {
+  try {
+    const conversationId = req.params.id;
+    const conversation = await Conversation.findById(conversationId);
+    if (conversation.members.includes(req.user.userId)) {
+      return res.status(200).json({
+        status: "success",
+        msg: "Conversation fetched",
+        data: conversation,
+      });
+    } else {
+      return res.status(403).json({
+        status: "failed",
+        msg: "You are not included in this conversation",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      status: "failed",
+      msg: "error occured",
+      error: error,
+    });
+  }
+};
+
+module.exports = { CreateConversation, UserConversation, SingleConversation };
