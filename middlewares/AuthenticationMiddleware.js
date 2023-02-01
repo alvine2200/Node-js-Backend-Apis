@@ -14,9 +14,8 @@ const Auth = async (req, res, next) => {
     const payload = await jwt.verify(token, process.env.JWT_SECRET);
     if (payload) {
       req.user = { userId: payload.id, email: payload.email };
-      next();
+      return next();
     }
-
     return res.status(403).json({
       status: "failed",
       msg: "User Not authorized, token doesnt match",
